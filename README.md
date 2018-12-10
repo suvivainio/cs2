@@ -1,2 +1,2 @@
-# cs2
-cs2
+# Computational statistics 2 homework
+
