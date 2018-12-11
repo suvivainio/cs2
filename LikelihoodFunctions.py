@@ -11,27 +11,11 @@ sigma2: theta (intercept at index 0 and coefficients) is given zero mean
 output: lProb is the log probability for theta
 """
 def lBayesLR(theta, x, y, sigma2=100):
-    lProb=-np.sum(np.log(1+np.exp(-y*(x@theta))))-1/(2*sigma2)*theta@theta
+    # Discard small values since they only conribute little to the sum of exponents
+    # that is discard all values below -700.0
+    exponent0=(-y*(x@theta))[-y*(x@theta) > -700.0]
+    # Implement log-sum-trick to avoid overflows
+    term1=-np.sum(exponent0+np.log(1.0+np.exp(-exponent0)))
+    term2=-1/(2*sigma2)*theta@theta
+    lProb=term1+term2
     return lProb
-
-"""
-def lBayesLR(theta, x, y, sigma2=100):
-    # Delete very small terms, since they don't contribute to the sum
-    # and would cause underflow
-    exponent0=-y*(x@theta)
-    exponent1=exponent0[exponent0>-700.0]
-    if len(exponent0[exponent0<-700.0])>0: 
-        print('Capping small likelihood values!')
-        print('original vs capped length', len(exponent0), len(exponent1))
-        print('discarded # of values: ', len(exponent0)-len(exponent1))
-    maxExp=np.max(exponent1)
-    if maxExp > 700:
-        # max(Exponent) is large use logsum-trick to avoid overflows
-        # Ignore term np.log(1), since it is small
-        lProb=-np.sum(maxExp+np.log(np.exp(exponent1-maxExp)))-1/(2*sigma2)*theta@theta
-    else:
-        
-        lProb=-np.sum(np.log(1+np.exp(exponent1)))-1/(2*sigma2)*theta@theta
-
-    return lProb
-"""
