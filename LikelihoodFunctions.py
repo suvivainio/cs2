@@ -14,8 +14,20 @@ def lBayesLR(theta, x, y, sigma2=100):
     # Discard small values since they only conribute little to the sum of exponents
     # that is discard all values below -700.0
     exponent0=(-y*(x@theta))[-y*(x@theta) > -700.0]
-    # Implement log-sum-trick to avoid overflows
+    # Implement log-sum-trick to avoid crass overflows
     term1=-np.sum(exponent0+np.log(1.0+np.exp(-exponent0)))
     term2=-1/(2*sigma2)*theta@theta
     lProb=term1+term2
     return lProb
+
+    
+"""
+TEST CASE HIERARCHICAL LOGISTIC REGRESSION, EQ. 22
+"""
+# First parameter in theta is variance
+# Rest are beta coefficients
+def lBayesHLR(theta, x, y, lambda0=0.01):
+    sigma2=np.exp(theta[0])
+    beta=theta[1:]
+    prob1=-np.sum(np.log(1+np.exp(-(y[:, np.newaxis]*x)@beta)))-1/(2*sigma2)*beta@beta-len(y)/2*np.log(sigma2)-lambda0*sigma2
+    return prob1
