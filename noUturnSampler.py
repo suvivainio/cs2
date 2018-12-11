@@ -100,6 +100,7 @@ def NoUTurn(theta0, delta, Likelihood, nSamples, nSamplesAdapt, testRun=False):
         # For the actual sample always use same epsilon.
         else:
             epsilonHist[i]=epsilonHist[i-1]
+    print('U-Turn sampler finished.')
     return thetaHist[nSamplesAdapt+1:], epsilonHist
 """
 Parameters:

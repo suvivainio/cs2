@@ -40,5 +40,6 @@ def ConvergenceTest(input0):
     plt.bar(range(len(inputEff)),height=inputEff)
     plt.axhline(y=10.0, color='tab:orange')
     plt.title('Effective sample size, target value, target 10 independent observations')
+    return input1
 
 
