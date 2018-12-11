@@ -154,14 +154,14 @@ def FindReasonableEpsilon(parTheta, fLikelihood, testRun=False):
 	# Generate first theta and momentum r
 	thetaCur, rCur=Leapfrog(parTheta, r, epsilon, gradLikelihood)
 	# a gets values [-1, 1], and epsilon is halved or doubled accordingly
-	condition=(np.exp(fLikelihood(thetaCur)-1/2*rCur@rCur-(fLikelihood(parTheta)-1/2*r@r)))
-	a=2.0*((condition)>0.5)-1
+	condition=(fLikelihood(thetaCur)-1/2*rCur@rCur-(fLikelihood(parTheta)-1/2*r@r))
+	a=2.0*((condition)>np.log(0.5))-1
 
-	while condition**a > 2.0**(-a):
+	while condition**a > -a*np.log(2.0):
 		thetaOld=thetaCur; rOld=rCur
 		epsilon=(2**a)*epsilon
 		thetaCur, rCur=Leapfrog(thetaOld, rOld, epsilon, gradLikelihood)
-		condition=(np.exp(fLikelihood(thetaCur)-1/2*rCur@rCur-(fLikelihood(thetaOld)-1/2*rOld@rOld)))
+		condition=(fLikelihood(thetaCur)-1/2*rCur@rCur-(fLikelihood(thetaOld)-1/2*rOld@rOld))
 		a=2.0*(condition>0.5)-1
 	if testRun: print('Ending FindReasonableEpsilon')
 	return epsilon
