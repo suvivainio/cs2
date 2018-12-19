@@ -124,12 +124,14 @@ def BuildTree(theta,r,logU,v,j,epsilon,theta0,r0,Likelihood, testRun=False, delt
             print('compared to Likelihood(theta0): ', Likelihood(theta0))
             print('u-value: ', logU)
             print()
-        joint=(Likelihood(thetaCur)-1/2*np.dot(rCur,rCur.T)
+        joint=(Likelihood(thetaCur)-1/2*np.dot(rCur,rCur.T))
         nCur=int(logU<joint)
         # Stop simulating if the difference of Likelihood(theta)-0.5r@r - log u < -deltaMax
         sCur=int(logU-deltaMax<joint)
         joint0=Likelihood(theta0)-1/2*r0@r0
-        alpha0=min(1.0,np.exp(joint-joint0))
+        if joint-joint0<-700: help0=0
+        else: help0=joint-joint0
+        alpha0=min(1.0,np.exp(help0))
         nAlpha0=1
         return thetaCur,rCur,thetaCur,rCur,thetaCur,nCur,sCur,alpha0,nAlpha0
     else:
