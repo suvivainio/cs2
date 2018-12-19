@@ -27,7 +27,24 @@ TEST CASE HIERARCHICAL LOGISTIC REGRESSION, EQ. 22
 # First parameter in theta is variance
 # Rest are beta coefficients
 def lBayesHLR(theta, x, y, lambda0=0.01):
-    sigma2=np.exp(theta[0])
+    #print('*** lBayesHLR, START')
+    #print('lBayesHLR, sigma2: ', theta[0])
+    #print('lBayesHLR, sigma2 nan to num: ', np.nan_to_num(np.exp(theta[0])))
+    sigma2=np.nan_to_num(np.exp(theta[0]))
     beta=theta[1:]
-    prob1=-np.sum(np.log(1+np.exp(-(y[:, np.newaxis]*x)@beta)))-1/(2*sigma2)*beta@beta-len(y)/2*np.log(sigma2)-lambda0*sigma2
+    exponent0=(-(y[:, np.newaxis]*x)@beta)[-(y[:, np.newaxis]*x)@beta > -700.0]
+    term1=-np.sum(exponent0+np.log(1+np.exp(-exponent0)))
+    term2=-1/(2*sigma2)*beta@beta-len(y)/2*np.log(sigma2)-lambda0*sigma2
+    prob1=term1+term2
+    #print('lBayesHLR, returning:', prob1)
+    #print('*** lBayesHLR END')
     return prob1
+
+    
+    
+    
+    
+    
+    
+
+
