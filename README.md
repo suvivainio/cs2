@@ -25,9 +25,9 @@ Functions and other files:
 
 ## Problem 2
 Moreno et al. 2016: Automatic Variational ABC
-    * implement algorithm 1
-    * test your implementation by replicating the simulated tests (4.1-4.2)
-    * compare your results to the results in the paper
+* implement algorithm 1
+* test your implementation by replicating the simulated tests (4.1-4.2)
+* compare your results to the results in the paper
     
 ### Relevant files
 Automatic Variational ABC.ipynb
