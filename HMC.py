@@ -63,7 +63,6 @@ def basicHmc(theta0, epsilon, nSteps, fLikelihood, nSamples):
     print('Acceptance rate: ', nAccepted / (nSamples/2.0))
     return thetaHist[nSamples//2+1:], rHist[nSamples//2:]
 
-# Leadfrog function is the same for HMC and NUTS
 def Leapfrog(parTheta, parR, parEpsilon, thetaGradient):
     parR0 = parR +(parEpsilon/2)*thetaGradient(parTheta)
     parTheta0 = parTheta+parEpsilon*parR0

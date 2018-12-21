@@ -52,11 +52,19 @@ def NoUTurn(theta0, delta, Likelihood, nSamples, nSamplesAdapt, testRun=False):
         # Simulate momentum variable
         r0 = npr.normal(size=len(theta0))
         # Calculate slice variable u, that renders the conditional distribution p(theta, r | u)
-        if testRun: 
-            print('High bound Likelihood: ', Likelihood(thetaHist[i-1]), ' , 1/2*r0@r0: ', 1/2*r0@r0)
-        if Likelihood(thetaHist[i-1])-1/2*r0@r0 < -700.0: highBound=0.0
-        else: highBound=np.exp(Likelihood(thetaHist[i-1])-1/2*r0@r0)
-        u=npr.uniform(low=0.0, high=highBound)
+        #if testRun: 
+        #    print('High bound Likelihood: ', Likelihood(thetaHist[i-1]), ' , 1/2*r0@r0: ', 1/2*r0@r0)
+        #if Likelihood(thetaHist[i-1])-1/2*r0@r0 < -700.0: highBound=0.0
+        #else: highBound=np.exp(Likelihood(thetaHist[i-1])-1/2*r0@r0)
+        #u=npr.uniform(low=0.0, high=highBound)
+        
+        #joint lnp of theta and momentum r
+        joint = Likelihood(thetaHist[i-1])-1/2*r0@r0
+
+        # Resample u ~ uniform([0, exp(joint)]).
+        # Equivalent to (log(u) - joint) ~ exponential(1).
+        logu = float(joint - np.random.exponential(1, size=1))
+        
         # initialize values; in the beginning left (minus) and right (plus) sides are the same.
         thetaMinus=thetaHist[i-1]
         thetaPlus=thetaHist[i-1]
@@ -74,9 +82,9 @@ def NoUTurn(theta0, delta, Likelihood, nSamples, nSamplesAdapt, testRun=False):
             vj=-1+2*npr.binomial(n=1, p=0.5)
             if testRun: print('Going to direction: ', vj)
             if vj == -1:
-                thetaMinus,rMinus,_,_,thetaCur,nCur,sCur,alpha,nAlpha=BuildTree(thetaMinus,rMinus,u,vj,j,epsilonHist[i-1],thetaHist[i-1],r0,Likelihood,testRun)
+                thetaMinus,rMinus,_,_,thetaCur,nCur,sCur,alpha,nAlpha=BuildTree(thetaMinus,rMinus,logu,vj,j,epsilonHist[i-1],thetaHist[i-1],r0,Likelihood,testRun)
             elif vj==1:
-                _,_,thetaPlus,rPlus,thetaCur,nCur,sCur,alpha,nAlpha=BuildTree(thetaPlus,rPlus,u,vj,j,epsilonHist[i-1],thetaHist[i-1],r0,Likelihood, testRun)
+                _,_,thetaPlus,rPlus,thetaCur,nCur,sCur,alpha,nAlpha=BuildTree(thetaPlus,rPlus,logu,vj,j,epsilonHist[i-1],thetaHist[i-1],r0,Likelihood, testRun)
             # Accept the move from old state to new state (thetaCur)
             if sCur==1.0:
                 if npr.uniform() < nCur/n:
@@ -117,7 +125,7 @@ deltaMax: If the error in the simulation becomes extremely large, then the proce
         that a large number - e.g 1000 - should be selected so that it doesn't interfere with the simulation.
 testRun: True/False, print debugging info?
 """
-def BuildTree(theta,r,u,v,j,epsilon,theta0,r0,Likelihood, testRun=False, deltaMax=1000):
+def BuildTree(theta,r,logu,v,j,epsilon,theta0,r0,Likelihood, testRun=False, deltaMax=1000):
     gradLikelihood=autograd.grad(Likelihood)
     if j==0:
         thetaCur,rCur=Leapfrog(theta,r,v*epsilon,gradLikelihood)
@@ -126,13 +134,13 @@ def BuildTree(theta,r,u,v,j,epsilon,theta0,r0,Likelihood, testRun=False, deltaMa
             print('compared to Likelihood(theta0): ', Likelihood(theta0))
             print('u-value: ', u)
             print()
-        if u == 0.0: 
+        if logu == 0.0: 
             nCur=1.0
             sCur=1.0
         else:
-            nCur=1.0*(np.log(u)<(Likelihood(thetaCur)-1/2*rCur@rCur))
+            nCur=1.0*(logu<(Likelihood(thetaCur)-1/2*rCur@rCur))
             # Stop simulating if the difference of Likelihood(theta)-0.5r@r - log u < -deltaMax
-            sCur=1.0*(np.log(u)<(deltaMax+Likelihood(thetaCur)-1/2*rCur@rCur))
+            sCur=1.0*(logu<(deltaMax+Likelihood(thetaCur)-1/2*rCur@rCur))
         
         if (Likelihood(thetaCur)-1/2*rCur@rCur-Likelihood(theta0)+1/2*r0@r0) < -700.0: helper=0.0
         elif Likelihood(thetaCur)-1/2*rCur@rCur-Likelihood(theta0)+1/2*r0@r0 >= 0: 
@@ -141,12 +149,12 @@ def BuildTree(theta,r,u,v,j,epsilon,theta0,r0,Likelihood, testRun=False, deltaMa
         return thetaCur,rCur,thetaCur,rCur,thetaCur,nCur,sCur,min(1.0,helper),1.0
     else:
         if testRun: print('j-value is: ', j)
-        thetaMinus,rMinus,thetaPlus,rPlus,thetaCur,nCur,sCur,alphaCur,nAlphaCur=BuildTree(theta,r,u,v,j-1,epsilon,theta0,r0,Likelihood)
+        thetaMinus,rMinus,thetaPlus,rPlus,thetaCur,nCur,sCur,alphaCur,nAlphaCur=BuildTree(theta,r,logu,v,j-1,epsilon,theta0,r0,Likelihood)
         if sCur==1:
             if v==-1:
-                thetaMinus,rMinus,_,_,thetaCur2,nCur2,sCur2,alphaCur2,nAlphaCur2=BuildTree(thetaMinus,rMinus,u,v,j-1,epsilon,theta0,r0,Likelihood)
+                thetaMinus,rMinus,_,_,thetaCur2,nCur2,sCur2,alphaCur2,nAlphaCur2=BuildTree(thetaMinus,rMinus,logu,v,j-1,epsilon,theta0,r0,Likelihood)
             else:
-                _,_,thetaPlus,rPlus,thetaCur2,nCur2,sCur2,alphaCur2,nAlphaCur2=BuildTree(thetaPlus,rPlus,u,v,j-1,epsilon,theta0,r0,Likelihood)
+                _,_,thetaPlus,rPlus,thetaCur2,nCur2,sCur2,alphaCur2,nAlphaCur2=BuildTree(thetaPlus,rPlus,logu,v,j-1,epsilon,theta0,r0,Likelihood)
             if testRun: print('ännät: ', nCur, nCur2)
             if nCur+nCur2==0: condition0=0.0
             else: condition0=nCur2/(nCur+nCur2)

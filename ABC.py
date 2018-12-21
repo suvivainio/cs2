@@ -15,7 +15,7 @@ npr.seed(42)
 # fU: function to simulate u
 # nParticle: number of particles (=length of u)
 # rho_0, t0: parameters defining the step length
-def avabc(phi0,nIterations,fTarget, fNu, nSample, fU, nParticle,CalculateTheta, printInfo=True,rho_0=0.1, t0 = 100):
+def avabc(phi0,nIterations,fTarget, fNu, nSample, fU, nParticle,CalculateTheta, printInfo=False,rho_0=0.1, t0 = 100):
     phiHist = np.zeros([nIterations, len(phi0)])
     phiHist[0]=phi0
     lambdaTarget=lambda x: fTarget(x, nu, u)
@@ -29,8 +29,9 @@ def avabc(phi0,nIterations,fTarget, fNu, nSample, fU, nParticle,CalculateTheta, 
         nu = fNu(nSample)
         u=fU(nParticle)
         g=gradTarget(phiHist[t-1])
+        if printInfo: print('avabc: g', g)
         phiHist[t]=phiHist[t-1]+rho_0/(t0+t)*g
-        if printInfo: print('*** avabc, phiHist: ', phiHist[t], rho_0/(t0+t)*g)
+        if printInfo: print('*** avabc, phiHist, rho, g: ', phiHist[t], rho_0, g)
         # Collect information on sampler performance
         lbHist[t]=lambdaTarget(phiHist[t])
         gradHist[t]=derivative(lambdaTarget, phiHist[t])
